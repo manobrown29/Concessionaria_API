@@ -3,31 +3,39 @@ package com.concessionaria.exception;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErroValidacaoDTO> handleValidacao(MethodArgumentNotValidException ex) {
+        List<ErroCampoDTO> erros = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> new ErroCampoDTO(fe.getField(), fe.getDefaultMessage()))
+                .toList();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErroValidacaoDTO(400, erros));
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ResponseEntity<Map<String, Object>> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(corpoErro(ex.getMessage()));
+    public ResponseEntity<ErroDTO> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErroDTO(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(RecursoDuplicadoException.class)
+    public ResponseEntity<ErroDTO> handleDuplicado(RecursoDuplicadoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErroDTO(409, ex.getMessage()));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleIntegridade(DataIntegrityViolationException ex) {
+    public ResponseEntity<ErroDTO> handleIntegridade(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(corpoErro("verifique campos unicos (CPF, chassi, placa)."));
-    }
-
-    private Map<String, Object> corpoErro(String mensagem) {
-        Map<String, Object> corpo = new HashMap<>();
-        corpo.put("timestamp", Instant.now().toString());
-        corpo.put("mensagem", mensagem);
-        return corpo;
+                .body(new ErroDTO(409, "Já existe um registro com esse CPF, chassi ou placa."));
     }
 }

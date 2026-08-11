@@ -1,8 +1,9 @@
 package com.concessionaria.Controller;
 
-import com.concessionaria.Repository.CarroRepository;
-import com.concessionaria.exception.RecursoNaoEncontradoException;
-import com.concessionaria.model.Carro;
+import com.concessionaria.dto.CarroRequestDTO;
+import com.concessionaria.dto.CarroResponseDTO;
+import com.concessionaria.service.CarroService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,32 +16,26 @@ import java.util.List;
 public class CarroController {
 
     @Autowired
-    private CarroRepository carroRepository;
+    private CarroService carroService;
 
     @PostMapping
-    public ResponseEntity<Carro> cadastrar(@RequestBody Carro carro) {
-        carro.setId(null);
-        Carro salvo = carroRepository.save(carro);
-        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
+    public ResponseEntity<CarroResponseDTO> cadastrar(@Valid @RequestBody CarroRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(carroService.cadastrar(dto));
     }
 
     @GetMapping
-    public List<Carro> listar() {
-        return carroRepository.findAll();
+    public List<CarroResponseDTO> listar() {
+        return carroService.listar();
     }
 
     @GetMapping("/{id}")
-    public Carro buscarPorId(@PathVariable Integer id) {
-        return carroRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Carro nao encontrado: id " + id));
+    public CarroResponseDTO buscarPorId(@PathVariable Integer id) {
+        return carroService.buscarPorId(id);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable Integer id) {
-        if (!carroRepository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Carro nao encontrado: id " + id);
-        }
-        carroRepository.deleteById(id);
+        carroService.remover(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,8 +1,9 @@
 package com.concessionaria.Controller;
 
-import com.concessionaria.Repository.ClienteRepository;
-import com.concessionaria.exception.RecursoNaoEncontradoException;
-import com.concessionaria.model.Cliente;
+import com.concessionaria.dto.ClienteRequestDTO;
+import com.concessionaria.dto.ClienteResponseDTO;
+import com.concessionaria.service.ClienteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,32 +16,26 @@ import java.util.List;
 public class ClienteController {
 
     @Autowired
-    private ClienteRepository clienteRepository;
+    private ClienteService clienteService;
 
     @PostMapping
-    public ResponseEntity<Cliente> cadastrar(@RequestBody Cliente cliente) {
-        cliente.setId(null);
-        Cliente salvo = clienteRepository.save(cliente);
-        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
+    public ResponseEntity<ClienteResponseDTO> cadastrar(@Valid @RequestBody ClienteRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteService.cadastrar(dto));
     }
 
     @GetMapping
-    public List<Cliente> listar() {
-        return clienteRepository.findAll();
+    public List<ClienteResponseDTO> listar() {
+        return clienteService.listar();
     }
 
     @GetMapping("/{id}")
-    public Cliente buscarPorId(@PathVariable Integer id) {
-        return clienteRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado: id " + id));
+    public ClienteResponseDTO buscarPorId(@PathVariable Integer id) {
+        return clienteService.buscarPorId(id);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable Integer id) {
-        if (!clienteRepository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Cliente nao encontrado: id " + id);
-        }
-        clienteRepository.deleteById(id);
+        clienteService.remover(id);
         return ResponseEntity.noContent().build();
     }
 }
