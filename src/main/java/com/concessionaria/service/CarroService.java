@@ -43,8 +43,9 @@ public class CarroService {
         return toResponseDTO(carroRepository.save(carro));
     }
 
-    public List<CarroResponseDTO> listar() {
-        return carroRepository.findAll().stream()
+    // Sem filtro nenhum -> lista tudo. Com cor e/ou anoFabricacao -> filtra.
+    public List<CarroResponseDTO> listar(String cor, Integer anoFabricacao) {
+        return carroRepository.buscarComFiltro(cor, anoFabricacao).stream()
                 .map(this::toResponseDTO)
                 .toList();
     }

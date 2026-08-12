@@ -7,11 +7,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenApiConfig {
+
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Concessionaria Marcelo Gomes")
+                        .title("API Concessionária Marcelo Gomes")
+                        .description("API para controle de estoque de carros e cadastro de clientes, substituindo o controle por planilha.")
                         .version("1.0.0"));
     }
 }
